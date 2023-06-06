@@ -1,4 +1,5 @@
 use crate::file_finder::get_images;
+use crate::render::PdfRenderer;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::PyResult;
@@ -7,6 +8,7 @@ use std::path::PathBuf;
 use crate::resize::{get_filter, scale_down_rust, sha256_rust};
 
 mod file_finder;
+mod render;
 mod resize;
 
 #[pymodule]
@@ -15,6 +17,7 @@ fn mit_tools(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sha256, m)?)?;
     m.add_function(wrap_pyfunction!(sha256_scale, m)?)?;
     m.add_function(wrap_pyfunction!(get_imgs, m)?)?;
+    m.add_class::<PdfRenderer>()?;
     Ok(())
 }
 
