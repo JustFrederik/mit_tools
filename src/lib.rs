@@ -1,10 +1,11 @@
-use crate::file_finder::get_images;
-use crate::render::PdfRenderer;
+use std::path::PathBuf;
+
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::PyResult;
-use std::path::PathBuf;
 
+use crate::file_finder::get_images;
+use crate::render::PangoRenderer;
 use crate::resize::{get_filter, scale_down_rust, sha256_rust};
 
 mod file_finder;
@@ -17,11 +18,15 @@ fn mit_tools(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sha256, m)?)?;
     m.add_function(wrap_pyfunction!(sha256_scale, m)?)?;
     m.add_function(wrap_pyfunction!(get_imgs, m)?)?;
-    m.add_class::<PdfRenderer>()?;
+    m.add_class::<PangoRenderer>()?;
     Ok(())
 }
 
 #[pyfunction]
+#[pyo3(signature = (image_path,
+output_path,
+filter,
+scale))]
 pub fn scale_down(
     image_path: String,
     output_path: String,
@@ -34,11 +39,16 @@ pub fn scale_down(
 }
 
 #[pyfunction]
+#[pyo3(signature = (image_path))]
 pub fn sha256(image_path: String) -> PyResult<Vec<u8>> {
     sha256_rust(&image_path).map_err(PyException::new_err)
 }
 
 #[pyfunction]
+#[pyo3(signature = (image_path,
+output_path,
+filter,
+scale))]
 pub fn sha256_scale(
     image_path: String,
     output_path: String,
@@ -52,6 +62,10 @@ pub fn sha256_scale(
 }
 
 #[pyfunction]
+#[pyo3(signature = (root,
+output_dir,
+file_types,
+ending))]
 pub fn get_imgs(
     root: String,
     output_dir: String,
