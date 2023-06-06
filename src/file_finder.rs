@@ -6,13 +6,16 @@ pub fn get_images(
     root: &Path,
     output_dir: Option<PathBuf>,
     file_types: Vec<&str>,
+    ending: &Option<String>,
 ) -> Result<Vec<(PathBuf, PathBuf)>, String> {
-    let v = get_all_files_with(root, file_types)?
+    let v = get_all_files_with(root, &file_types)?;
+    let multiple = v.len() != 1;
+    let v = v
         .iter()
         .map(|v| {
             (
                 v.path().to_path_buf(),
-                generate_output_path(root, v.path(), output_dir.clone()),
+                generate_output_path(root, v.path(), output_dir.clone(), multiple, ending),
             )
         })
         .collect::<Vec<_>>();
@@ -30,7 +33,7 @@ pub fn get_images(
     Ok(res)
 }
 
-pub fn get_all_files_with(root: &Path, file_types: Vec<&str>) -> Result<Vec<DirEntry>, String> {
+pub fn get_all_files_with(root: &Path, file_types: &[&str]) -> Result<Vec<DirEntry>, String> {
     let temp = WalkDir::new(root)
         .into_iter()
         .map(|v| v.map_err(|e| format!("Failed to get entry: {}", e)))
@@ -39,7 +42,7 @@ pub fn get_all_files_with(root: &Path, file_types: Vec<&str>) -> Result<Vec<DirE
     for item in temp {
         let item = item?;
         if item.path().is_file()
-            && file_name_checker(item.file_name().to_str().unwrap_or(""), &file_types)
+            && file_name_checker(item.file_name().to_str().unwrap_or(""), file_types)
         {
             res.push(item);
         }
@@ -51,6 +54,8 @@ pub fn generate_output_path(
     root: &Path,
     file_dir: &Path,
     output_dir: Option<PathBuf>,
+    multiple: bool,
+    ending: &Option<String>,
 ) -> Result<PathBuf, String> {
     let root = if root.is_file() {
         root.parent().unwrap_or(Path::new("."))
@@ -58,13 +63,32 @@ pub fn generate_output_path(
         root
     };
     let output_dir = output_dir.unwrap_or(generate_output(root));
-    if output_dir.is_file() {
-        return Ok(output_dir);
-    }
     let relative_path = file_dir
         .strip_prefix(root)
         .map_err(|e| format!("Failed to strip prefix: {}", e))?;
-    Ok(output_dir.join(relative_path))
+    let mut res = if multiple {
+        output_dir.join(relative_path)
+    } else {
+        let file = output_dir.file_name();
+        let mut res = output_dir.clone();
+        if let Some(filen) = file {
+            if !filen.to_str().unwrap_or("").contains('.') {
+                res = res.join(relative_path);
+                let filename = format!(
+                    "{}-output",
+                    res.file_name()
+                        .map(|v| v.to_str().unwrap_or(""))
+                        .unwrap_or("")
+                );
+                res.set_file_name(filename);
+            }
+        }
+        res
+    };
+    if let Some(ending) = ending {
+        res.set_extension(ending);
+    }
+    Ok(res)
 }
 
 fn generate_output(path: &Path) -> PathBuf {

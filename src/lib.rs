@@ -53,14 +53,19 @@ pub fn get_imgs(
     root: String,
     output_dir: String,
     file_types: Vec<String>,
+    ending: String,
 ) -> PyResult<Vec<(String, String)>> {
     let root = PathBuf::from(root);
     let output_dir = match output_dir.as_str() {
         "" => None,
         _ => Some(PathBuf::from(output_dir)),
     };
+    let ending = match ending.as_str() {
+        "" => None,
+        _ => Some(ending),
+    };
     let file_types = file_types.iter().map(|s| s.as_str()).collect::<Vec<_>>();
-    get_images(&root, output_dir, file_types)
+    get_images(&root, output_dir, file_types, &ending)
         .map_err(PyException::new_err)
         .map(|v| {
             v.iter()
