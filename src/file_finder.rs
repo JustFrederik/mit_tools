@@ -74,12 +74,18 @@ pub fn generate_output_path(
         if let Some(filen) = file {
             if !filen.to_str().unwrap_or("").contains('.') {
                 res = res.join(relative_path);
-                let filename = format!(
-                    "{}-output",
-                    res.file_name()
-                        .map(|v| v.to_str().unwrap_or(""))
-                        .unwrap_or("")
-                );
+                let filename = res
+                    .file_name()
+                    .map(|v| v.to_str().unwrap_or(""))
+                    .unwrap_or("");
+                let (filename, ending) = if !filename.contains('.') {
+                    (filename.to_string(), "".to_string())
+                } else {
+                    let mut items = filename.split('.').collect::<Vec<_>>();
+                    let last = items.pop().expect("checked before");
+                    (items.join("."), format!(".{}", last))
+                };
+                let filename = format!("{}-output{}", filename, ending);
                 res.set_file_name(filename);
             }
         }
