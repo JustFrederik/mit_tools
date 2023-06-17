@@ -11,9 +11,9 @@ img = np.asarray(png_pil_img)
 # style, vertical
 pdf = mit_tools.PangoRenderer("", False)
 pdf.set_background(img)
-# text, (x, y, width, height), font_size, vertical_allignment, horizontal_alignment, font_color
-pdf.add_text("Hello world", (0.0, 0.0, 100.0, 100.0), 12, "center", "center", 0xFF5733)
-# filename, width, height, output format
-pdf.save("hello.pdf", 6000, 6000, "pdf false")
-pdf.save("hello.png", 6000, 6000, "png true")
-pdf.save("hello.svg", 6000, 6000, "svg")
+# text, (x, y, width, height), font_size, (horizontal_alignment, vertical_alignment), (foreground_color, background_color), bg
+pdf.add_text("Hello world", (0.0, 0.0, 100.0, 100.0), 12, ("center", "center"), (0xFF5733, 0xFF5733), None)
+# filename, output format, add extension
+pdf.save("hello.pdf", "pdf false", False)
+pdf.save("hello.png", "png true", False)
+pdf.save("hello.svg", "svg", False)
