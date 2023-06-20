@@ -71,6 +71,11 @@ impl PangoRenderer {
         Ok(())
     }
 
+    #[pyo3(signature = (width, height ))]
+    fn set_size(&mut self, width: usize, height: usize) -> PyResult<()> {
+        self.img_dim = [width, height];
+    }
+
     #[pyo3(signature = (
     text,
     position,
